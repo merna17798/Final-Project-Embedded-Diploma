@@ -1,0 +1,38 @@
+19:32:46 **** Incremental Build of configuration Debug for project motor_ICU ****
+make all 
+Building file: ../potentiometer.c
+Invoking: AVR Compiler
+avr-gcc -Wall -g2 -gstabs -O0 -fpack-struct -fshort-enums -ffunction-sections -fdata-sections -std=gnu99 -funsigned-char -funsigned-bitfields -mmcu=atmega16 -DF_CPU=1000000UL -MMD -MP -MF"potentiometer.d" -MT"potentiometer.d" -c -o "potentiometer.o" "../potentiometer.c"
+In file included from ../micro_config.h:22,
+                 from ../adc.h:16,
+                 from ../potentiometer.c:8:
+c:/winavr-20100110/lib/gcc/../../avr/include/util/delay.h:90:3: warning: #warning "Compiler optimizations disabled; functions from <util/delay.h> won't work as designed"
+Finished building: ../potentiometer.c
+ 
+Building target: motor_ICU.elf
+Invoking: AVR C Linker
+avr-gcc -Wl,-Map,motor_ICU.map -mmcu=atmega16 -o "motor_ICU.elf"  ./adc.o ./lcd.o ./potentiometer.o   
+Finished building target: motor_ICU.elf
+ 
+Invoking: AVR Create Extended Listing
+avr-objdump -h -S motor_ICU.elf  >"motor_ICU.lss"
+Finished building: motor_ICU.lss
+ 
+Invoking: Print Size
+avr-size --format=avr --mcu=atmega16 motor_ICU.elf
+AVR Memory Usage
+----------------
+Device: atmega16
+
+Program:    6166 bytes (37.6% Full)
+(.text + .data + .bootloader)
+
+Data:         28 bytes (2.7% Full)
+(.data + .bss + .noinit)
+
+
+Finished building: sizedummy
+ 
+
+19:32:48 Build Finished (took 2s.583ms)
+
