@@ -1,0 +1,24 @@
+/*
+ * main.c
+ *
+ *  Created on: 12 Oct 2020
+ *      Author: pc
+ */
+#include "uart.h"
+#include "external_eeprom.h"
+int main(){
+	uint8 sent_pass[7];
+	uint8 x,y,val;
+	/* Init EEPROM */
+	EEPROM_init();
+	UART_init();
+	while(1){
+	x=UART_recieveByte(sent_pass);
+	EEPROM_writeByte(0x0311, x);
+	_delay_ms(100);
+	y=EEPROM_readByte(0x0311, &val);
+	UART_sendByte(y);
+	}
+	return 0;
+}
+

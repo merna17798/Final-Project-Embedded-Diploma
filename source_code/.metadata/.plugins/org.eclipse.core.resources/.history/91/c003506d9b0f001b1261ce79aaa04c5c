@@ -1,0 +1,9 @@
+		
+		LCD_sendCommand(CLEAR_COMMAND);
+    	LCD_displayStringRowColumn(0,0,"Err, press on/c");
+    	key = KeyPad_getPressedKey(); /* get the pressed key number */
+    	_delay_ms(2000); /* Press time  */
+    	j++;
+    	get_pass(arr);
+    	
+   

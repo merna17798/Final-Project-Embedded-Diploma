@@ -1,0 +1,16 @@
+/*
+ * main.c
+ *
+ *  Created on: 16 Oct 2020
+ *      Author: pc
+ */
+#include "external_eeprom.h"
+#include "uart.h"
+enum READY{
+	READY1=10,
+	READY2=20,
+	READY3=30,
+	READY4=40
+};
+
+

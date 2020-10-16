@@ -1,0 +1,42 @@
+/*
+ * main.c
+ *
+ *  Created on: 16 Oct 2020
+ *      Author: pc
+ */
+#include "uart.h"
+#include "external_eeprom.h"
+enum READY{
+	READY1=10,
+	READY2=20,
+	READY3=30,
+	READY4=40
+};
+static void Recieve_Write_Memory(enum READY R){
+	/* receive the new password and store(write) it in the EEPRM */
+	uint8 i=0,password[7],RECIEVE;
+	RECIEVE=uart_recieveByte();
+	while (RECIEVE!= R){};
+	for ( i = 0; i < 5 ; i++)
+	{
+		uart_sendByte(R);
+		password[i] = uart_recieveByte();
+		EEPROM_writeByte((0x000 | i), password[i]);
+		_delay_ms(10);
+	}
+}
+static void Read_Send_Memory(enum READY R){
+	uint8 i=0,password[7],RECIEVE;
+	RECIEVE=uart_recieveByte();
+
+
+}
+int main (void){
+	Recieve_Write_Memory(READY1);
+	while(1){
+		Read_Send_Memory(READY2);
+		Recieve_Write_Memory(READY3);
+		Recieve_Write_Memory(READY1);
+
+	}
+}

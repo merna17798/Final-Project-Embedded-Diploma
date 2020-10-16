@@ -1,0 +1,15 @@
+/*
+ * main.c
+ *
+ *  Created on: 12 Oct 2020
+ *      Author: pc
+ */
+#include "uart.h"
+#include "i2c.h"
+#include "external_eeprom.h"
+int main(){
+
+
+	return 0;
+}
+
