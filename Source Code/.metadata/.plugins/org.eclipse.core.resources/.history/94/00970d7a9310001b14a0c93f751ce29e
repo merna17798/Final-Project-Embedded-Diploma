@@ -1,0 +1,188 @@
+/*
+ * main.c
+ *
+ *  Created on: 16 Oct 2020
+ *      Author: pc
+ */
+#include "external_eeprom.h"
+#include "uart.h"
+#include "timer0.h"
+
+#define NUMBER_OF_OVERFLOWS_PER_SECOND 32
+
+volatile uint8 g_tick = 0;
+volatile uint8 second;
+
+ISR(TIMER0_OVF_vect)
+{
+	g_tick++;
+	if (g_tick == NUMBER_OF_OVERFLOWS_PER_SECOND)
+	{
+		second++;
+		g_tick = 0; //clear the tick counter again to count a new 0.5 second
+	}
+}
+void motor_open(void){
+	/* configure pin PC0 and PC1 as output pins */
+	DDRB |= 0x03;
+	_delay_ms(1000);
+	// Rotate the motor --> clock wise
+	PORTB |= (1<<PB1);
+	PORTB &= (~(1<<PB0));
+}
+void motor_close(void){
+	/* configure pin PC0 and PC1 as output pins */
+	DDRB |= 0x03;
+	_delay_ms(1000);
+	// Rotate the motor --> anti-clock wise
+	PORTB |= (1<<PB0);
+	PORTB &= (~(1<<PB1));
+}
+
+
+enum READY{
+	READY1=10,
+	READY2=20,
+	READY3=30,
+	READY4=40,
+	READY5=50,
+	READY6=60, READY7=70
+};
+static void Recive_Write(enum READY R){
+	uint8 i,x[7];
+	uint8 recieve=UART_recieveByte();
+	while(recieve!=R){};
+	for(i=0;i<5;i++){
+		UART_sendByte(R);
+		x[i]=UART_recieveByte();
+		EEPROM_writeByte((0x000|i),x[i]);
+		_delay_ms(100);
+	}
+}
+
+int main (void){
+	UART_init();
+	EEPROM_init();
+	uint8 i,x[7];
+	//uint8 recieve=UART_recieveByte();
+	Recive_Write(READY1);
+	/*
+	if(recieve==READY1){
+		while(recieve!=READY1){};
+		for(i=0;i<5;i++){
+			UART_sendByte(READY1);
+			x[i]=UART_recieveByte();
+			EEPROM_writeByte((0x000|i),x[i]);
+			_delay_ms(100);
+		}
+	}
+	else if (recieve==READY4){
+		_delay_ms(100);
+		SET_BIT(DDRA,0);
+		SET_BIT(PORTA,0);
+		//timer0_init_CTC_mode(50);
+		timer0_init_normal_mode(T0_F_CPU_1024, 0);
+		while (second != 4)
+			;
+		second = 0;
+		//timer0_stop();
+		//_delay_ms(90000);
+		CLEAR_BIT(PORTA,0);
+		Recive_Write(READY1);
+	}
+*/
+	while(1){
+		uint8 RECIEVE=UART_recieveByte();
+		if(RECIEVE==READY2){
+			while(RECIEVE!=READY2){};
+			for(i=0;i<5;i++){
+				UART_sendByte(READY2);
+				EEPROM_readByte((0x000|i),&x[i]);
+				UART_sendByte(x[i]);
+				_delay_ms(100);
+			}
+			Recive_Write(READY3);
+			Recive_Write(READY1);
+		}
+		else if(RECIEVE==READY6){
+			while(RECIEVE!=READY6){};
+			for(i=0;i<5;i++){
+				UART_sendByte(READY6);
+				EEPROM_readByte((0x000|i),&x[i]);
+				UART_sendByte(x[i]);
+				_delay_ms(100);
+			}
+			uint8 recieve=UART_recieveByte();
+			if (recieve==READY4){
+				_delay_ms(100);
+				SET_BIT(DDRA,0);
+				SET_BIT(PORTA,0);
+				//timer0_init_CTC_mode(50);
+				timer0_init_normal_mode(T0_F_CPU_1024, 0);
+				while (second != 4)
+					;
+				second = 0;
+				//timer0_stop();
+				//_delay_ms(90000);
+				CLEAR_BIT(PORTA,0);
+
+			}
+			Recive_Write(READY7);
+			motor_open();
+
+			timer0_init_normal_mode(T0_F_CPU_1024, 0);
+
+			while (second != 2)
+				;
+			second=0;
+
+			motor_close();
+
+			while (second != 2)
+				;
+			second = 0;
+
+			PORTB=0XFC;
+			timer0_deinit();
+/*
+		uint8 recieve=UART_recieveByte();
+		if (recieve==READY4){
+			_delay_ms(100);
+			SET_BIT(DDRA,0);
+			SET_BIT(PORTA,0);
+			//timer0_init_CTC_mode(50);
+			timer0_init_normal_mode(T0_F_CPU_1024, 0);
+			while (second != 4)
+				;
+			second = 0;
+			//timer0_stop();
+			//_delay_ms(90000);
+			CLEAR_BIT(PORTA,0);
+
+		}
+*/
+
+/*
+			Recive_Write(READY7);
+			motor_open();
+
+			timer0_init_normal_mode(T0_F_CPU_1024, 0);
+
+			while (second != 2)
+				;
+			second=0;
+
+			motor_close();
+
+			while (second != 2)
+				;
+			second = 0;
+
+			PORTB=0XFC;
+			timer0_deinit();
+
+			}
+			*/
+	}
+}
+}

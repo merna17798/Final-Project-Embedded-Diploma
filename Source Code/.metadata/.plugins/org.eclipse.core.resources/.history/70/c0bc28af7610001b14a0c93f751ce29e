@@ -1,0 +1,162 @@
+/*
+ * main.c
+ *
+ *  Created on: 16 Oct 2020
+ *      Author: pc
+ */
+#include "external_eeprom.h"
+#include "uart.h"
+
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include "micro_config.h"
+//#include "timer.h"
+#define NUMBER_OF_OVERFLOWS_PER_SECOND 32
+
+volatile uint8 g_tick = 0;
+volatile uint8 second;
+/* Description :
+ * For clock = 8Mhz and prescaler F_CPU/1024 every count will take 128 microsecond
+ * so put initial timer counter=0  0 --> 255 (32ms per overflow)
+ * so we need timer to overflow 31 times to get a 1 second
+ */
+
+void timer0_init_normal_mode(void)
+{
+	//second = 0;
+	TCNT0 = 0; //timer initial value
+	TIMSK |= (1 << TOIE0); //enable overflow interrupt
+	/* Configure the timer control register
+	 * 1. Non PWM mode FOC0=1
+	 * 2. Normal Mode WGM01=0 & WGM00=0
+	 * 3. Normal Mode COM00=0 & COM01=0
+	 * 4. clock = F_CPU/1024 CS00=1 CS01=0 CS02=1
+	 */
+	TCCR0 = (1 << FOC0) | (1 << CS02) | (1 << CS00);
+
+}
+
+ISR(TIMER0_OVF_vect)
+{
+	g_tick++;
+	if (g_tick == NUMBER_OF_OVERFLOWS_PER_SECOND)
+	{
+		second++;
+		g_tick = 0; //clear the tick counter again to count a new 0.5 second
+	}
+	if (second==3){
+		PORTB=0XFC;
+	}
+
+}
+void motor_open(void){
+	/* configure pin PC0 and PC1 as output pins */
+	DDRB |= 0x03;
+	_delay_ms(1000);
+	// Rotate the motor --> clock wise
+	PORTB |= (1<<PB1);
+	PORTB &= (~(1<<PB0));
+}
+void motor_close(void){
+	/* configure pin PC0 and PC1 as output pins */
+	DDRB |= 0x03;
+	_delay_ms(1000);
+	// Rotate the motor --> anti-clock wise
+	PORTB |= (1<<PB0);
+	PORTB &= (~(1<<PB1));
+}
+
+
+enum READY{
+	READY1=10,
+	READY2=20,
+	READY3=30,
+	READY4=40,
+	READY5=50,
+	READY6=60
+};
+static void Recive_Write(enum READY R){
+	uint8 i,x[7];
+	uint8 recieve=UART_recieveByte();
+	while(recieve!=R){};
+	for(i=0;i<5;i++){
+		UART_sendByte(R);
+		x[i]=UART_recieveByte();
+		EEPROM_writeByte((0x000|i),x[i]);
+		_delay_ms(100);
+	}
+}
+
+int main (void){
+	UART_init();
+	EEPROM_init();
+	uint8 i,x[7];
+	uint8 recieve=UART_recieveByte();
+	if(recieve==READY1){
+		while(recieve!=READY1){};
+		for(i=0;i<5;i++){
+			UART_sendByte(READY1);
+			x[i]=UART_recieveByte();
+			EEPROM_writeByte((0x000|i),x[i]);
+			_delay_ms(100);
+		}
+	}
+	else if (recieve==READY4){
+		_delay_ms(100);
+		SET_BIT(DDRA,0);
+		SET_BIT(PORTA,0);
+		//timer0_init_CTC_mode(50);
+		timer0_init_normal_mode();
+		while (second != 1)
+			;
+		second = 0;
+		//timer0_stop();
+		//_delay_ms(90000);
+		CLEAR_BIT(PORTA,0);
+		Recive_Write(READY1);
+	}
+
+	while(1){
+		uint8 RECIEVE=UART_recieveByte();
+		if(RECIEVE==READY2){
+			while(RECIEVE!=READY2){};
+			for(i=0;i<5;i++){
+				UART_sendByte(READY2);
+				EEPROM_readByte((0x000|i),&x[i]);
+				UART_sendByte(x[i]);
+				_delay_ms(100);
+			}
+			Recive_Write(READY3);
+			Recive_Write(READY1);
+		}
+		else if(RECIEVE==READY5){
+
+			motor_open();
+			timer0_init_normal_mode();
+			while (second != 2)
+				;
+			second=0;
+			//_delay_ms(40000);
+			//Timer0_set_CallBack(motor_open);
+			//Timer1_init(8000);  // 1 second
+			//timer0_init_CTC_mode(1);
+			motor_close();
+			while (second != 2)
+				;
+			second = 0;
+			//Timer1_init(8000);  // 1 second
+			//timer0_init_CTC_mode(1);
+			//timer0_stop();
+
+			//SREG  |= (1<<7);           // Enable global interrupts in MC.
+			//timer0_init_CTC_mode(50);
+			//_delay_ms(40000);
+
+
+			//timer0_init_CTC_mode(50);
+			//timer0_stop();
+			//_delay_ms(40000);
+			PORTB=0XFC;
+			}
+	}
+}

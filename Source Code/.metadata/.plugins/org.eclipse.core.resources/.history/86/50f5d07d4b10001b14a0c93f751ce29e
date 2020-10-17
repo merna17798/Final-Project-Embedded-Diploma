@@ -1,0 +1,13 @@
+/*
+ * timer0.c
+ *
+ *  Created on: 17 Oct 2020
+ *      Author: pc
+ */
+#include "timer0.h"
+enum Mode{
+	NORMAL,COMPARE
+};
+enum Prescaler{
+	NO_CLK_SOURCE, NONE, PRE_8, PRE_64, PRE_256, PRE_1024, EXTERNAL_ON_T0_FALLING, EXTERNAL_ON_T0_RISING
+};

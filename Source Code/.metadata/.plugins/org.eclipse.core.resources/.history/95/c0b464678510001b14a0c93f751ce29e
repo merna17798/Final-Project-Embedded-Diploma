@@ -1,0 +1,52 @@
+/*
+ * timer0.c
+ *
+ *  Created on: 17 Oct 2020
+ *      Author: pc
+ */
+#include "timer0.h"
+
+#if (MODE==NORMAL)
+	void timer0_init_normal_mode(uint8 a_Prescaler, uint8 intitial_value){
+		/*  This function is set to initialize Timer0 for the normal mode.
+			a_Prescaler is the frequency prescaler.
+			intitial_value the value that the timer will start count from,
+			it varies from 0 to 255.
+			clock period = 1 / (F_CPU*Prescaler).
+			Tick equation = clock period * ((255 - a_TIMER0_Bottom) + 1).
+			For a_Prescaler: You can also use T0_NO_CLOCK, T0_F_CPU_, T0_F_CPU_8,
+			T0_F_CPU_64, T0_F_CPU_256, T0_F_CPU_1024.
+
+			*/
+		SREG  |= (1<<7);    // global interrupt bit.
+		TCNT0 = intitial_value;  // the value that the timer will start count from.
+		TIMSK |= (1<<TOIE0);    // interrupt enable bit for Timer0 in normal mode.
+		TCCR0 = (1<<FOC0);    // this bit is set to one for any non-PWM mode.
+		TCCR0 = (TCCR0 & 0xF8) | (a_Prescaler & 0x07);  // Prescaler.
+	}
+#elif (MODE==COMPARE)
+	void timer0_init_compare_mode(uint8 a_Prescaler, uint8 intitial_value, uint8 tick){
+		/*  This function is set to initialize Timer0 for the compare mode.
+			a_Prescaler is the frequency prescaler.
+			intitial_value the value that the timer will start count from,
+			it varies from 0 to 255.
+			clock period = 1 / (F_CPU*Prescaler).
+			Tick equation = clock period * ((255 - a_TIMER0_Bottom) + 1).
+			For a_Prescaler: You can also use T0_NO_CLOCK, T0_F_CPU_, T0_F_CPU_8,
+			T0_F_CPU_64, T0_F_CPU_256, T0_F_CPU_1024.
+			tick the value that the timer will count to, it varies from 0 to 255.
+			 */
+		SREG  |= (1<<7);  // global interrupt bit.
+		TCNT0 = intitial_value;  // the value that the timer will start count from.
+		OCR0 = tick;  // the value that the timer will count to.
+		TIMSK |= (1<<OCIE0);  // interrupt enable bit for Timer0 in compare mode.
+		TCCR0 = (1<<FOC0) | (1<<WGM01);  //  enable compare mode.
+		TCCR0 = (TCCR0 & 0xF8) | (a_Prescaler & 0x07);  // Prescaler.
+	}
+#endif
+void timer0_deinit(void){
+	/*
+	 * This function is set to Deinit(stop) Time0.
+	 */
+	TCCR0 = 0;
+}

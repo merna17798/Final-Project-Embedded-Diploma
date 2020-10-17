@@ -1,0 +1,28 @@
+/*
+ * timer0.h
+ *
+ *  Created on: 17 Oct 2020
+ *      Author: pc
+ */
+
+#ifndef TIMER0_H_
+#define TIMER0_H_
+
+#include "common_macros.h"
+#include "std_types.h"
+#include "micro_config.h"
+
+/*******************************************************************************
+ *                      Preprocessor Macros                                    *
+ *******************************************************************************/
+
+
+/*******************************************************************************
+ *                      Functions Prototypes                                   *
+ *******************************************************************************/
+
+void timer0_init_normal_mode(uint8 , uint8 );
+void timer0_init_compare_mode(uint8 , uint8 , uint8 );
+
+
+#endif /* TIMER0_H_ */

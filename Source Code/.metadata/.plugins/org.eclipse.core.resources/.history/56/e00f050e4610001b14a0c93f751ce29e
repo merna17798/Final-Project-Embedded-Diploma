@@ -1,0 +1,15 @@
+/*
+ * timer0.h
+ *
+ *  Created on: 17 Oct 2020
+ *      Author: pc
+ */
+
+#ifndef TIMER0_H_
+#define TIMER0_H_
+
+#include "micro_config.h"
+#include "std_types.h"
+#include "common_macros.h"
+
+#endif /* TIMER0_H_ */
